@@ -1,150 +1,159 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-    <meta charset="UTF-8">
-    <!--<script src="//cdn.jsdelivr.net/npm/phaser@3.0.0/dist/phaser.min.js"></script>-->
-    <script src="phaser/dist/phaser.min.js"></script>
-</head>
-<body>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Το παιχνίδι του δεξιού &amp; αριστερού click</title>
+        <!--<script src="//cdn.jsdelivr.net/phaser/2.5.0/phaser.min.js"></script>-->
+        <script src="phaser-2.5.0/phaser.min.js"></script>
+    </head>
+    <body>
 
-    <script>
-    var config = {
-        type: Phaser.AUTO,
-        width: 1000,
-        height: 700,
-        physics: {
-            default: 'arcade',
-            arcade: {
-                gravity: { y: 0 }
-            }
-        },
-        scene: {
-            preload: preload,
-            create: create,
-            update: update
+    <script type="text/javascript">
+
+    window.onload = function() {
+
+        //  Note that this html file is set to pull down Phaser 2.5.0 from the JS Delivr CDN.
+        //  Although it will work fine with this tutorial, it's almost certainly not the most current version.
+        //  Be sure to replace it with an updated version before you start experimenting with adding your own code.
+
+        var game = new Phaser.Game(960, 700, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+        var right_click_counter = 0;
+        var left_click_counter = 0;
+        var game_timer = 30;
+        var right_click_text, left_click_text, cat, dog, rand_animal, click_right, click_wrong, timer_text, play_again;
+
+        function preload () {
+            game.load.image('backdrop', 'alx_img/forrest.png')
+           
+            game.load.image('dog', 'alx_img/dog.png');
+            game.load.image('cat', 'alx_img/cat.png');
+            game.load.image('right', 'alx_img/right.png');
+            game.load.image('wrong', 'alx_img/wrong.png');
+            game.load.image('scoreboard', 'alx_img/scoreboard.png');
+            game.load.image('gameover', 'alx_img/gameover.png');
+            game.load.image('play_again', 'alx_img/play_again.png');
         }
+
+        function create () {
+
+            rand_animal = game.rnd.integerInRange(0, 1);
+            console.log(rand_animal);
+            game.add.image(0, 0, 'backdrop');
+            game.add.image(600,30, 'scoreboard');
+            dog = game.add.image(100,300, 'dog');
+            cat = game.add.image(500,300, 'cat');
+
+            timer = game.time.create(false);
+            timer.loop(1000, timer_callback, this);
+
+
+            click_right = game.add.image(800,580, 'right');
+            click_right.anchor.setTo(0.5, 0.5);
+            click_right.alpha=0.2;
+            
+            click_wrong = game.add.image(900,580, 'wrong');
+            click_wrong.anchor.setTo(0.5, 0.5);
+            click_wrong.alpha=0.2;
+            
+            play_again = game.add.image(695, 580, 'play_again');
+            play_again.anchor.setTo(0.5, 0.5);
+            play_again.alpha=0.2;
+            play_again.inputEnabled=false;
+            
+
+            var style = { font: "60px Courier", fill: "#fff", tabs: 132 };
+            var style2 = { font: "30px Courier", fill: "#fff", tabs: 132 };
+            game.add.text(10, 560, "Αριστερό κλικ στη γάτα", style2);
+            game.add.text(10, 590, "Δεξί κλικ στο σκύλο", style2);
+            right_click_text = game.add.text(890, 110, "0", style);
+            right_click_text.anchor.setTo(0.5, 0.5);
+            timer_text = game.add.text(723, 110, game_timer, style);
+            timer_text.anchor.setTo(0.5, 0.5);
+            
+            dog.inputEnabled = true;
+            cat.inputEnabled = true;
+            dog.events.onInputDown.add(listener, this);
+            cat.events.onInputDown.add(listener, this);
+            game.input.mouse.capture = true;
+
+            game.canvas.oncontextmenu = function (e) { e.preventDefault(); }
+            if (rand_animal==0)
+                cat.visible = false;
+            else   
+                dog.visible = false;
+
+            timer.start();
+        }
+
+        function timer_callback() {
+            game_timer--;
+            timer_text.setText(game_timer);
+            if (game_timer==0) {
+                timer.stop();
+                game.add.image(320,300, 'gameover');
+                play_again.alpha=1;
+                play_again.inputEnabled=true;
+                dog.inputEnabled=false;
+                cat.inputEnabled=false;
+                play_again.events.onInputDown.add(on_play_again, this);
+
+            }
+        }
+
+        function on_play_again() {
+            location.reload(); 
+            console.log('play_again bitch!');
+        }
+
+        function update_text() {
+            right_click_text.setText(right_click_counter);
+            rand_animal = game.rnd.integerInRange(0, 1);
+            if (rand_animal==0) {
+                cat.visible = false;
+                dog.visible = true;
+            }
+            else  {
+                dog.visible = false;
+                cat.visible = true;
+            }
+        }
+
+        function light_right() {
+            click_right.alpha=1;
+            game.add.tween(click_right).to( { alpha: 0.2 }, 500, Phaser.Easing.Linear.None, true);
+        }
+        function light_wrong() {
+            click_wrong.alpha=1;
+            game.add.tween(click_wrong).to( { alpha: 0.2 }, 500, Phaser.Easing.Linear.None, true);
+        }
+        function listener(sprite, pointer) {
+            if (pointer.leftButton.isDown && sprite==cat) { 
+                console.log("Left click");
+                left_click_counter++;
+                right_click_counter++;
+                light_right();
+                update_text();   
+            }
+            else if (pointer.rightButton.isDown && sprite==dog) {
+                console.log("Right click");
+                right_click_counter++;
+                light_right();
+                update_text();
+            } 
+            else
+                light_wrong();
+        }
+
+      
+        
+        function update() {
+         
+        }
+
+       
     };
 
-    var game = new Phaser.Game(config);
-
-    function preload ()
-    {
-        this.load.image('backdrop', 'alx_img/1000x700_grid.png')
-        this.load.image('tuxbot', 'alx_img/tuxbot_95.png')
-
-        this.load.image('arrow_up', 'alx_img/arrow_up.png');
-        this.load.image('arrow_down', 'alx_img/arrow_down.png');
-        this.load.image('arrow_left', 'alx_img/arrow_left.png');
-        this.load.image('arrow_right', 'alx_img/arrow_right.png');
-    }
-
-    function create ()
-    {
-        this.add.image(500, 350, 'backdrop');
-        //this.add.image(500, 350, 'tuxbot');
-
-        player = this.physics.add.sprite(500, 350, 'tuxbot');
-
-        player.setBounce(0.2);
-        player.setCollideWorldBounds(true);
-        
-        
-        this.input.events.on('POINTER_DOWN_EVENT', player_clicked);
-
-        cursors = this.input.keyboard.createCursorKeys();
-        
-        arrow_width=50;
-        arrow_height=50;
-        left_image_added=false;
-        right_image_added=false;
-        seq_started=false;
-    }
-
-    function player_clicked() {
-        console.log("player clicked!");
-    }
-
-    function getMethods(obj) {
-        var result = [];
-        for (var id in obj) {
-            try {
-                    if (typeof(obj[id]) == "function") {
-                        result.push(id + ": " + obj[id].toString());
-                    }
-                } catch (err) {
-                                result.push(id + ": inaccessible");
-                                }
-        }
-        return result;
-    }
-
-    function update() {
-        
-        if (cursors.left.isDown) {
-            if (!left_image_added) {
-                this.add.image(arrow_width, arrow_height, 'arrow_left');
-                arrow_width+=100;
-                if (arrow_width>config.width) {
-                    arrow_width=50;
-                    arrow_height+=100;
-                }
-                left_image_added=true;
-            }
-        } else 
-            left_image_added=false;
-        
-        if (cursors.right.isDown) {
-            if (!right_image_added) {
-                this.add.image(arrow_width, arrow_height, 'arrow_right');
-                arrow_width+=100;
-                if (arrow_width>config.width) {
-                    arrow_width=50;
-                    arrow_height+=100;
-                }
-                right_image_added=true;
-            }
-        } else 
-            right_image_added=false;
-
-
-        if (cursors.left.isDown) {
-            player.setVelocityX(-160);
-            //alert(getMethods(this.physics).join("\n"));
-            //console.log('ok');
-            //player.setPosition(100,100, 20);
-        }
-        else if (cursors.right.isDown)
-            player.setVelocityX(160);
-        else
-            player.setVelocityX(0);
-        
-        
-        
-        if (cursors.up.isDown){
-            if (!seq_started) {
-                player.y-=100;
-                
-                seq_started=true;
-            }
-        } else {
-            seq_started=false;
-        }
-        
-        if (cursors.down.isDown) {
-            player.y+=100;
-        }
-
-
-        /*
-        if (cursors.up.isDown)
-            player.setVelocityY(-160);
-        else if (cursors.down.isDown)
-            player.setVelocityY(160);
-        else
-            player.setVelocityY(0);
-        */
-    }
     </script>
 
-</body>
+    </body>
 </html>
