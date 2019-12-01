@@ -1,0 +1,11 @@
+{
+  "name": "left_and_right_click_game",
+  "version": "1.0.0",
+  "main": "index.html",
+  "repository": "git@github.com:ale3andro/left_and_right_click_game.git",
+  "author": "ale3andro <ale3andro@gmail.com>",
+  "license": "GNU",
+  "dependencies": {
+    "phaser": "2.5.0"
+  }
+}
